@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Overview &mdash; MedQueue Admin{% endblock %}
+{% block page_title %}Clinic overview{% endblock %}
+{% block content %}
+
+<div class="grid-4" style="margin-bottom:18px;">
+  <div class="stat-card">
+    <div class="label">Patients</div>
+    <div class="value">{{ stats.total_users }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Active doctors</div>
+    <div class="value">{{ stats.total_doctors }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Appointments today</div>
+    <div class="value accent">{{ stats.today_appts }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">All-time appointments</div>
+    <div class="value">{{ stats.total_appts }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0;">Recent bookings</h2>
+    <a href="{{ url_for('admin_analytics') }}" class="btn ghost sm">View analytics</a>
+  </div>
+  {% if recent %}
+  <table>
+    <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for a in recent %}
+      <tr>
+        <td>{{ a.patient_name }}</td>
+        <td>Dr. {{ a.doctor_name }}</td>
+        <td>{{ a.appt_date }}</td>
+        <td>{{ a.time_slot }}</td>
+        <td><span class="badge {{ a.status }}">{{ a.status.replace('_',' ') }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No appointments have been booked yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

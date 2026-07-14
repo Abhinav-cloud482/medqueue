@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &mdash; MedQueue{% endblock %}
+{% block page_title %}Welcome back, {{ g.user.name.split(' ')[0] }}{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0;">Upcoming appointments</h2>
+    <a href="{{ url_for('book_select_doctor') }}" class="btn accent">+ Book appointment</a>
+  </div>
+
+  {% if upcoming %}
+    <table>
+      <thead>
+        <tr><th>Doctor</th><th>Specialization</th><th>Date</th><th>Time</th><th>Token</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for a in upcoming %}
+        <tr>
+          <td>Dr. {{ a.doctor_name }}</td>
+          <td>{{ a.specialization }}</td>
+          <td>{{ a.appt_date }}</td>
+          <td>{{ a.time_slot }}</td>
+          <td><span class="token-pill">#{{ a.queue_number }}</span></td>
+          <td><span class="badge {{ a.status }}">{{ a.status.replace('_',' ') }}</span></td>
+          <td><a href="{{ url_for('queue_status', appt_id=a.id) }}" class="btn ghost sm">Track queue</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🗓️</div>
+      <p>You have no upcoming appointments yet.</p>
+      <a href="{{ url_for('book_select_doctor') }}" class="btn accent">Book your first appointment</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>How it works</h3>
+  <div class="grid-3">
+    <div><strong>1. Book</strong><p class="muted" style="font-size:.86rem;">Choose a doctor and an open time slot that fits your day.</p></div>
+    <div><strong>2. Track</strong><p class="muted" style="font-size:.86rem;">See your live token number and estimated wait before you leave home.</p></div>
+    <div><strong>3. Get notified</strong><p class="muted" style="font-size:.86rem;">We'll let you know when you're next, so you never miss your turn.</p></div>
+  </div>
+</div>
+{% endblock %}

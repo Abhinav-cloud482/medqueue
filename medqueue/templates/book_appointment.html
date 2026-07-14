@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Book with Dr. {{ doctor.doctor_name }} &mdash; MedQueue{% endblock %}
+{% block page_title %}Book with Dr. {{ doctor.doctor_name }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('book_select_doctor') }}" class="muted" style="font-size:.85rem;">&larr; Back to doctors</a>
+
+<div class="grid-2" style="margin-top:14px;">
+  <div class="card">
+    <h3>Dr. {{ doctor.doctor_name }} &middot; {{ doctor.specialization }}</h3>
+    <p class="muted" style="font-size:.86rem;">{{ doctor.bio or '' }}</p>
+
+    <form method="POST" id="booking-form">
+      <div class="field">
+        <label for="appt_date">Date</label>
+        <input type="date" id="appt_date" name="appt_date" min="{{ today }}" max="{{ max_date }}" value="{{ today }}" required>
+      </div>
+      <div class="field">
+        <label>Available time slots</label>
+        <div id="slots" class="checkbox-row">
+          <span class="muted" style="font-size:.85rem;">Loading slots&hellip;</span>
+        </div>
+        <input type="hidden" name="time_slot" id="time_slot" required>
+      </div>
+      <div class="field">
+        <label for="reason">Reason for visit (optional)</label>
+        <textarea id="reason" name="reason" placeholder="e.g. Follow-up, fever, routine check-up"></textarea>
+      </div>
+      <button type="submit" class="btn accent" id="confirm-btn" disabled style="width:100%; padding:12px;">Select a time slot</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Before you book</h3>
+    <ul style="padding-left:18px; font-size:.88rem; color:var(--ink);">
+      <li>You'll receive a queue token number the moment you book.</li>
+      <li>Track your live position from <em>My appointments</em> on the day of your visit.</li>
+      <li>Consultation slots are {{ doctor.slot_minutes }} minutes each; average consult time is ~{{ doctor.avg_consult_minutes }} min.</li>
+      <li>You can cancel from your dashboard any time before your appointment starts.</li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const doctorId = {{ doctor.id }};
+const dateInput = document.getElementById('appt_date');
+const slotsBox = document.getElementById('slots');
+const timeSlotField = document.getElementById('time_slot');
+const confirmBtn = document.getElementById('confirm-btn');
+
+function selectSlot(el, value) {
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('accent'));
+  el.classList.add('accent');
+  timeSlotField.value = value;
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Confirm booking for ' + value;
+}
+
+async function loadSlots() {
+  timeSlotField.value = '';
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Select a time slot';
+  slotsBox.innerHTML = '<span class="muted" style="font-size:.85rem;">Loading slots&hellip;</span>';
+  const res = await fetch(`/api/slots?doctor_id=${doctorId}&date=${dateInput.value}`);
+  const data = await res.json();
+  slotsBox.innerHTML = '';
+  if (data.closed) {
+    slotsBox.innerHTML = '<span class="muted" style="font-size:.85rem;">The clinic is closed on this day.</span>';
+    return;
+  }
+  if (!data.slots.length) {
+    slotsBox.innerHTML = '<span class="muted" style="font-size:.85rem;">No open slots for this day. Try another date.</span>';
+    return;
+  }
+  data.slots.forEach(s => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn ghost sm slot-btn';
+    btn.textContent = s;
+    btn.onclick = () => selectSlot(btn, s);
+    slotsBox.appendChild(btn);
+  });
+}
+
+dateInput.addEventListener('change', loadSlots);
+loadSlots();
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Queue status &mdash; MedQueue{% endblock %}
+{% block page_title %}Your queue status{% endblock %}
+{% block content %}
+
+<div class="grid-2">
+  <div class="queue-board" id="board">
+    <div class="qb-label"><span>Dr. {{ appt.doctor_name }}</span><span>YOUR TOKEN</span></div>
+    <div class="qb-number">#{{ appt.queue_number }}</div>
+    <div class="qb-sub" id="status-line">Loading live status&hellip;</div>
+    <div class="qb-divider"></div>
+    <div class="qb-row"><span>Now serving</span><span class="tok" id="now-serving">&mdash;</span></div>
+    <div class="qb-row"><span>People ahead of you</span><span class="tok" id="ahead">&mdash;</span></div>
+    <div class="qb-row"><span>Estimated wait</span><span class="tok" id="wait">&mdash;</span></div>
+  </div>
+
+  <div class="card">
+    <h3>Appointment details</h3>
+    <table>
+      <tr><td class="muted">Doctor</td><td>Dr. {{ appt.doctor_name }}</td></tr>
+      <tr><td class="muted">Date</td><td>{{ appt.appt_date }}</td></tr>
+      <tr><td class="muted">Time slot</td><td>{{ appt.time_slot }}</td></tr>
+      <tr><td class="muted">Reason</td><td>{{ appt.reason or '&mdash;' }}</td></tr>
+    </table>
+    <p class="muted" style="font-size:.8rem; margin-top:14px;">This page refreshes automatically every 10 seconds. Keep it open while you wait, or check back any time from <em>My appointments</em>.</p>
+    <a href="{{ url_for('my_appointments') }}" class="btn ghost sm">Back to my appointments</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const apptId = {{ appt.id }};
+const statusLine = document.getElementById('status-line');
+const nowServingEl = document.getElementById('now-serving');
+const aheadEl = document.getElementById('ahead');
+const waitEl = document.getElementById('wait');
+
+const STATUS_TEXT = {
+  booked: "You're in the queue",
+  checked_in: "Checked in \u2014 waiting",
+  in_progress: "It's your turn now!",
+  completed: "Consultation complete",
+  cancelled: "Appointment cancelled",
+  no_show: "Marked as no-show",
+};
+
+async function refresh() {
+  try {
+    const res = await fetch(`/api/patient/queue/${apptId}`);
+    if (!res.ok) return;
+    const d = await res.json();
+    statusLine.textContent = STATUS_TEXT[d.status] || d.status;
+    nowServingEl.textContent = d.now_serving_token ? '#' + d.now_serving_token : '\u2014';
+
+    if (d.status === 'in_progress') {
+      aheadEl.textContent = '0';
+      waitEl.textContent = 'Now!';
+    } else if (d.status === 'completed' || d.status === 'cancelled' || d.status === 'no_show') {
+      aheadEl.textContent = '\u2014';
+      waitEl.textContent = '\u2014';
+    } else if (d.position !== null && d.position !== undefined) {
+      aheadEl.textContent = Math.max(d.position - 1, 0);
+      waitEl.textContent = d.estimated_wait_minutes <= 0 ? 'Any moment' : `~${d.estimated_wait_minutes} min`;
+    }
+  } catch (e) { /* silent */ }
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+{% endblock %}

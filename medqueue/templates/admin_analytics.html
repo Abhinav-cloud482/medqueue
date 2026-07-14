@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Analytics &mdash; MedQueue Admin{% endblock %}
+{% block page_title %}Delay &amp; queue analytics{% endblock %}
+{% block content %}
+
+<div class="grid-4" style="margin-bottom:18px;">
+  <div class="stat-card">
+    <div class="label">Total appointments</div>
+    <div class="value" id="k-total">&mdash;</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Avg. start delay</div>
+    <div class="value accent" id="k-delay">&mdash;</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">No-show rate</div>
+    <div class="value" id="k-noshow">&mdash;</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Completed</div>
+    <div class="value" id="k-completed">&mdash;</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>Appointment volume &mdash; last 14 days</h3>
+    <canvas id="volumeChart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <h3>Status breakdown</h3>
+    <canvas id="statusChart" height="180"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Delays by doctor</h3>
+  <p class="muted" style="font-size:.85rem;">Average minutes between a patient's scheduled slot and when the doctor actually started &mdash; the core signal for where appointment delays happen.</p>
+  <table>
+    <thead><tr><th>Doctor</th><th>Total appointments</th><th>Completed</th><th>No-shows</th><th>Cancelled</th><th>Avg. delay</th></tr></thead>
+    <tbody id="doctor-table">
+      <tr><td colspan="6" class="muted">Loading&hellip;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const primary = '#1B4B43';
+const accent = '#E8873A';
+const muted = '#63756F';
+
+async function loadAnalytics() {
+  const res = await fetch('/api/admin/analytics');
+  const d = await res.json();
+
+  document.getElementById('k-total').textContent = d.total_appts;
+  document.getElementById('k-delay').textContent = d.avg_delay_minutes > 0
+    ? `+${d.avg_delay_minutes} min` : `${d.avg_delay_minutes} min`;
+  document.getElementById('k-noshow').textContent = d.no_show_rate + '%';
+  document.getElementById('k-completed').textContent = d.completed;
+
+  new Chart(document.getElementById('volumeChart'), {
+    type: 'line',
+    data: {
+      labels: d.last_14_days.map(r => r.date.slice(5)),
+      datasets: [{
+        label: 'Appointments',
+        data: d.last_14_days.map(r => r.count),
+        borderColor: primary,
+        backgroundColor: 'rgba(27,75,67,0.12)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  const statusLabels = Object.keys(d.status_counts);
+  const statusColors = {
+    booked: '#2C6E8F', checked_in: '#2C6E8F', in_progress: accent,
+    completed: '#2F8F5B', cancelled: muted, no_show: '#C2503E'
+  };
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statusLabels.map(s => s.replace('_',' ')),
+      datasets: [{
+        data: statusLabels.map(s => d.status_counts[s]),
+        backgroundColor: statusLabels.map(s => statusColors[s] || muted),
+      }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+
+  const tbody = document.getElementById('doctor-table');
+  tbody.innerHTML = '';
+  d.per_doctor.forEach(r => {
+    const tr = document.createElement('tr');
+    const delayLabel = r.avg_delay > 0 ? `+${r.avg_delay} min` : `${r.avg_delay} min`;
+    tr.innerHTML = `<td>Dr. ${r.doctor_name}</td><td>${r.total}</td><td>${r.completed}</td><td>${r.no_show}</td><td>${r.cancelled}</td><td><strong>${delayLabel}</strong></td>`;
+    tbody.appendChild(tr);
+  });
+  if (!d.per_doctor.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">No data yet.</td></tr>';
+  }
+}
+
+loadAnalytics();
+</script>
+{% endblock %}

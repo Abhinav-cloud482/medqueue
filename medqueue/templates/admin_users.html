@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Patients &mdash; MedQueue Admin{% endblock %}
+{% block page_title %}Patients{% endblock %}
+{% block content %}
+
+<div class="card">
+  {% if patients %}
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for p in patients %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.email }}</td>
+        <td>{{ p.phone or '&mdash;' }}</td>
+        <td>{{ p.created_at[:10] }}</td>
+        <td><span class="badge {{ 'completed' if p.is_active else 'cancelled' }}">{{ 'Active' if p.is_active else 'Inactive' }}</span></td>
+        <td>
+          <form method="POST" action="{{ url_for('admin_toggle_user', user_id=p.id) }}">
+            <button type="submit" class="btn ghost sm">{{ 'Deactivate' if p.is_active else 'Activate' }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No patients registered yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

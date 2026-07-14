@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in &mdash; MedQueue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand">MedQueue<span class="dot">.</span></div>
+    <div class="tagline">Log in to your account</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <button type="submit" class="btn accent" style="width:100%; padding:12px;">Log in</button>
+    </form>
+    <div class="switch">New here? <a href="{{ url_for('register') }}">Create a patient account</a></div>
+    <div class="switch" style="margin-top:6px; font-size:.78rem;">
+      Demo logins &mdash; admin: admin@medqueue.local / admin123 &middot; doctor: asha.rao@medqueue.local / doctor123 &middot; patient: rahul.sharma@example.com / patient123
+    </div>
+  </div>
+</div>
+</body>
+</html>

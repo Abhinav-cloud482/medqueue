@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedQueue &mdash; appointments without the waiting-room guesswork</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="landing">
+  <div class="nav">
+    <div class="brand">MedQueue<span class="dot">.</span></div>
+    <div class="links">
+      <a href="{{ url_for('login') }}">Log in</a>
+      <a href="{{ url_for('register') }}" class="cta">Book an appointment</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="copy">
+      <div class="eyebrow">Clinic queue &amp; scheduling</div>
+      <h1>Know exactly when you'll be seen &mdash; before you leave home.</h1>
+      <p class="lead">MedQueue replaces the crowded waiting room with a live token board. Book online, track your position in real time, and get notified the moment the doctor is ready for you.</p>
+      <div class="cta-row">
+        <a href="{{ url_for('register') }}" class="btn-hero primary">Book an appointment</a>
+        <a href="{{ url_for('login') }}" class="btn-hero ghost">I'm a doctor / admin</a>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="board-label"><span>Dr. Asha Rao &mdash; Room 2</span><span>NOW SERVING</span></div>
+      <div class="now-serving">#04</div>
+      <div class="now-serving-caption">Estimated wait for token #07: 30 min</div>
+      <div class="queue-row"><span><span class="tok">#05</span> &nbsp;Rahul S.</span><span>In progress</span></div>
+      <div class="queue-row"><span><span class="tok">#06</span> &nbsp;Sneha V.</span><span>Waiting</span></div>
+      <div class="queue-row"><span><span class="tok">#07</span> &nbsp;Arjun I.</span><span>Waiting</span></div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="grid">
+      <div class="feature-card">
+        <div class="num">01</div>
+        <h3>Book in a minute</h3>
+        <p class="muted">Pick a doctor, see open slots for any day, and confirm &mdash; no phone calls or front-desk queues.</p>
+      </div>
+      <div class="feature-card">
+        <div class="num">02</div>
+        <h3>Live queue tracking</h3>
+        <p class="muted">Watch your token number and estimated wait update in real time from your phone.</p>
+      </div>
+      <div class="feature-card">
+        <div class="num">03</div>
+        <h3>Doctor queue console</h3>
+        <p class="muted">Doctors call the next patient, mark no-shows, and manage their day from one screen.</p>
+      </div>
+      <div class="feature-card">
+        <div class="num">04</div>
+        <h3>Delay analytics</h3>
+        <p class="muted">Admins see exactly where appointments run behind, so delays can be fixed at the source.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

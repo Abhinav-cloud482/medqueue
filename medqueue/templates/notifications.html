@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Notifications &mdash; MedQueue{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block content %}
+
+<div class="card">
+  {% if notifications %}
+  <ul class="list-plain">
+    {% for n in notifications %}
+    <li class="notif-item">
+      <span class="notif-dot {{ n.type }}"></span>
+      <div>
+        <div class="msg">{{ n.message }}</div>
+        <div class="time">{{ n.created_at }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">🔔</div>
+    <p>No notifications yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

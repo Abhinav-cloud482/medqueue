@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Today's queue &mdash; MedQueue{% endblock %}
+{% block page_title %}Today's queue{% endblock %}
+{% block content %}
+
+{% if not doctor %}
+  <div class="card"><p>No doctor profile is linked to this account yet. Ask an admin to set one up.</p></div>
+{% else %}
+
+<div class="grid-3" style="margin-bottom:18px;">
+  <div class="stat-card">
+    <div class="label">Total today</div>
+    <div class="value" id="stat-total">{{ queue|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Waiting</div>
+    <div class="value accent" id="stat-waiting">{{ queue|selectattr('status','equalto','booked')|list|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Completed</div>
+    <div class="value" id="stat-done">{{ queue|selectattr('status','equalto','completed')|list|length }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0;">Queue &mdash; {{ today }}</h2>
+    <a href="{{ url_for('doctor_schedule') }}" class="btn ghost sm">Schedule settings</a>
+  </div>
+
+  {% if queue %}
+  <table>
+    <thead>
+      <tr><th>Token</th><th>Time</th><th>Patient</th><th>Reason</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody id="queue-body">
+      {% for a in queue %}
+      <tr>
+        <td><span class="token-pill">#{{ a.queue_number }}</span></td>
+        <td>{{ a.time_slot }}</td>
+        <td>{{ a.patient_name }}</td>
+        <td class="muted" style="font-size:.85rem;">{{ a.reason or '&mdash;' }}</td>
+        <td><span class="badge {{ a.status }}">{{ a.status.replace('_',' ') }}</span></td>
+        <td>
+          <div class="btn-row">
+            {% if a.status == 'booked' %}
+              <form method="POST" action="{{ url_for('start_appointment', appt_id=a.id) }}">
+                <button type="submit" class="btn accent sm">Start</button>
+              </form>
+              <form method="POST" action="{{ url_for('no_show_appointment', appt_id=a.id) }}" onsubmit="return confirm('Mark this patient as a no-show?');">
+                <button type="submit" class="btn ghost sm">No-show</button>
+              </form>
+            {% elif a.status == 'in_progress' %}
+              <form method="POST" action="{{ url_for('complete_appointment', appt_id=a.id) }}">
+                <button type="submit" class="btn accent sm">Complete</button>
+              </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🗓️</div>
+      <p>No appointments scheduled for today.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Light polling to keep the page fresh if multiple staff view it; a full reload
+// keeps the server-rendered action buttons in sync with current status.
+setInterval(() => {
+  fetch('/api/doctor/queue').then(r => r.json()).then(d => {
+    const waiting = d.queue.filter(q => q.status === 'booked').length;
+    const done = d.queue.filter(q => q.status === 'completed').length;
+    const totalEl = document.getElementById('stat-total');
+    const waitEl = document.getElementById('stat-waiting');
+    const doneEl = document.getElementById('stat-done');
+    if (totalEl) totalEl.textContent = d.queue.length;
+    if (waitEl) waitEl.textContent = waiting;
+    if (doneEl) doneEl.textContent = done;
+  }).catch(() => {});
+}, 15000);
+</script>
+{% endblock %}

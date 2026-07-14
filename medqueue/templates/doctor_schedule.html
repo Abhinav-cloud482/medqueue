@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}My schedule &mdash; MedQueue{% endblock %}
+{% block page_title %}My schedule{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:560px;">
+  <h3>Working hours &amp; consultation settings</h3>
+  <p class="muted" style="font-size:.85rem;">These settings control the time slots patients can book, and how estimated wait times are calculated.</p>
+
+  <form method="POST">
+    <div class="grid-2">
+      <div class="field">
+        <label for="work_start">Day starts</label>
+        <input type="time" id="work_start" name="work_start" value="{{ doctor.work_start }}" required>
+      </div>
+      <div class="field">
+        <label for="work_end">Day ends</label>
+        <input type="time" id="work_end" name="work_end" value="{{ doctor.work_end }}" required>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="slot_minutes">Slot length (minutes)</label>
+        <input type="number" id="slot_minutes" name="slot_minutes" min="5" max="60" value="{{ doctor.slot_minutes }}" required>
+      </div>
+      <div class="field">
+        <label for="avg_consult_minutes">Average consult time (minutes)</label>
+        <input type="number" id="avg_consult_minutes" name="avg_consult_minutes" min="5" max="120" value="{{ doctor.avg_consult_minutes }}" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Days off</label>
+      <div class="checkbox-row">
+        {% set current_off = doctor.days_off.split(',') %}
+        {% for i in range(1,8) %}
+        <label class="checkbox-pill">
+          <input type="checkbox" name="days_off" value="{{ i }}" {{ 'checked' if i|string in current_off }}>
+          {{ weekdays[i-1] }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="bio">Bio (shown to patients when booking)</label>
+      <textarea id="bio" name="bio">{{ doctor.bio or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn accent">Save schedule</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}My appointments &mdash; MedQueue{% endblock %}
+{% block page_title %}My appointments{% endblock %}
+{% block content %}
+
+<div class="card">
+  {% if appointments %}
+  <table>
+    <thead>
+      <tr><th>Doctor</th><th>Date</th><th>Time</th><th>Token</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for a in appointments %}
+      <tr>
+        <td>Dr. {{ a.doctor_name }}<div class="muted" style="font-size:.78rem;">{{ a.specialization }}</div></td>
+        <td>{{ a.appt_date }}</td>
+        <td>{{ a.time_slot }}</td>
+        <td><span class="token-pill">#{{ a.queue_number }}</span></td>
+        <td><span class="badge {{ a.status }}">{{ a.status.replace('_',' ') }}</span></td>
+        <td>
+          <div class="btn-row">
+            {% if a.status in ['booked','checked_in'] %}
+              <a href="{{ url_for('queue_status', appt_id=a.id) }}" class="btn ghost sm">Track</a>
+              <form method="POST" action="{{ url_for('cancel_appointment', appt_id=a.id) }}" onsubmit="return confirm('Cancel this appointment?');">
+                <button type="submit" class="btn danger sm">Cancel</button>
+              </form>
+            {% elif a.status == 'in_progress' %}
+              <a href="{{ url_for('queue_status', appt_id=a.id) }}" class="btn ghost sm">Track</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🗓️</div>
+      <p>No appointments yet.</p>
+      <a href="{{ url_for('book_select_doctor') }}" class="btn accent">Book an appointment</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
